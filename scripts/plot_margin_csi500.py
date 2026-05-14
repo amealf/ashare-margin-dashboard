@@ -4,7 +4,7 @@ import json
 import os
 import subprocess
 import time
-from http.client import RemoteDisconnected
+from http.client import IncompleteRead, RemoteDisconnected
 from pathlib import Path
 from urllib.parse import urlencode
 from urllib.error import URLError
@@ -40,9 +40,9 @@ def fetch_json(url: str, referer: str) -> dict:
             },
         )
         try:
-            with urlopen(req, timeout=30) as resp:
+            with urlopen(req, timeout=45) as resp:
                 return json.loads(resp.read().decode("utf-8"))
-        except (RemoteDisconnected, URLError) as exc:
+        except (IncompleteRead, RemoteDisconnected, TimeoutError, URLError, OSError, json.JSONDecodeError) as exc:
             last_error = exc
             time.sleep(0.8)
     if os.name == "nt":
@@ -70,7 +70,7 @@ def fetch_json(url: str, referer: str) -> dict:
 def fetch_margin_balance() -> pd.DataFrame:
     rows: list[dict] = []
     page_number = 1
-    page_size = 800
+    page_size = 400
 
     while True:
         params = {
