@@ -1,6 +1,6 @@
 site:
   title: A股市场图表
-  description: 每个交易日自动更新的 A 股市场图表站点。
+  description: 每天自动更新的市场图表站点。
 
 categories:
   - id: a-share-margin

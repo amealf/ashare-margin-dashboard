@@ -12,4 +12,4 @@
 python scripts\build_site.py --all
 ```
 
-GitHub Actions 会在北京时间交易日 12:30 和 16:00 运行，并把 `site` 目录发布到 GitHub Pages。
+GitHub Actions 会在每天 CST 09:30（UTC+8，中国标准时间）运行，并把 `site` 目录发布到 GitHub Pages。
