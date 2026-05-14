@@ -15,5 +15,4 @@ charts:
     builder: margin_csi500
     module: plot_margin_csi500
     output_html: charts/a-share-margin/margin-csi500.html
-    output_png: charts/a-share-margin/margin-csi500.png
     output_csv: data/a-share-margin/margin-csi500.csv

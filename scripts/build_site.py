@@ -45,13 +45,10 @@ def build_margin_csi500(chart: dict) -> dict:
 
     csv_path = site_path(chart["output_csv"])
     html_path = site_path(chart["output_html"])
-    png_path = site_path(chart["output_png"])
     csv_path.parent.mkdir(parents=True, exist_ok=True)
     html_path.parent.mkdir(parents=True, exist_ok=True)
-    png_path.parent.mkdir(parents=True, exist_ok=True)
 
     data.to_csv(csv_path, index=False, encoding="utf-8-sig")
-    module.plot_overlay(data, png_path)
     module.write_interactive_html(data, html_path)
 
     meta = module.chart_meta(data)
@@ -102,6 +99,7 @@ def render_page(title: str, body: str) -> str:
     .card h3 {{ margin: 0 0 8px; font-size: 17px; }}
     .card p {{ margin: 0 0 12px; color: #4b5563; line-height: 1.6; font-size: 14px; }}
     .chart-preview {{
+      position: relative;
       display: block;
       margin: 12px 0 0;
       aspect-ratio: 16 / 9;
@@ -110,11 +108,21 @@ def render_page(title: str, body: str) -> str:
       border-radius: 6px;
       background: #fff;
     }}
-    .chart-preview img {{
+    .chart-preview iframe {{
       width: 100%;
       height: 100%;
       display: block;
-      object-fit: contain;
+      border: 0;
+      pointer-events: none;
+    }}
+    .preview-hit {{
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+    }}
+    .preview-hit:focus-visible {{
+      outline: 2px solid #2563eb;
+      outline-offset: -2px;
     }}
     .actions {{ display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }}
     .meta {{ margin-top: 12px; color: #475569; font-size: 13px; line-height: 1.7; }}
@@ -144,15 +152,16 @@ def chart_card(chart: dict, category: dict, generated: dict, prefix: str = "") -
     chart_id = chart["id"]
     info = generated.get(chart_id, {})
     chart_url = prefix + chart["output_html"].replace("\\", "/")
-    preview_url = prefix + chart["output_png"].replace("\\", "/")
     csv_url = prefix + chart["output_csv"].replace("\\", "/")
+    chart_title = html.escape(chart["title"])
     return f"""
 <article class="card">
-  <h3>{html.escape(chart["title"])}</h3>
+  <h3>{chart_title}</h3>
   <p>{html.escape(chart["description"])}</p>
-  <a class="chart-preview" href="{html.escape(chart_url)}" aria-label="打开{html.escape(chart["title"])}">
-    <img src="{html.escape(preview_url)}" alt="{html.escape(chart["title"])}小图" loading="lazy">
-  </a>
+  <div class="chart-preview">
+    <iframe src="{html.escape(chart_url)}" title="{chart_title}小图" loading="lazy"></iframe>
+    <a class="preview-hit" href="{html.escape(chart_url)}" aria-label="打开{chart_title}"></a>
+  </div>
   <div class="actions">
     <a class="button" href="{html.escape(chart_url)}">打开图表</a>
     <a class="button" href="{html.escape(csv_url)}" download>下载 CSV</a>
