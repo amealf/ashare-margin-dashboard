@@ -91,7 +91,7 @@ def render_page(title: str, body: str) -> str:
     h1 {{ margin: 0; font-size: 28px; line-height: 1.2; }}
     h2 {{ margin: 28px 0 12px; font-size: 20px; }}
     .muted {{ color: #5b6472; font-size: 14px; }}
-    .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }}
+    .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 16px; }}
     .card {{
       background: #fff;
       border: 1px solid #dbe1ea;
@@ -101,11 +101,26 @@ def render_page(title: str, body: str) -> str:
     }}
     .card h3 {{ margin: 0 0 8px; font-size: 17px; }}
     .card p {{ margin: 0 0 12px; color: #4b5563; line-height: 1.6; font-size: 14px; }}
-    .meta {{ color: #475569; font-size: 13px; line-height: 1.7; }}
+    .chart-preview {{
+      display: block;
+      margin: 12px 0 0;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      border: 1px solid #dbe1ea;
+      border-radius: 6px;
+      background: #fff;
+    }}
+    .chart-preview img {{
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+    }}
+    .actions {{ display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }}
+    .meta {{ margin-top: 12px; color: #475569; font-size: 13px; line-height: 1.7; }}
     .button {{
       display: inline-flex;
       align-items: center;
-      margin-top: 12px;
       padding: 8px 11px;
       border: 1px solid #cbd5e1;
       border-radius: 6px;
@@ -129,19 +144,25 @@ def chart_card(chart: dict, category: dict, generated: dict, prefix: str = "") -
     chart_id = chart["id"]
     info = generated.get(chart_id, {})
     chart_url = prefix + chart["output_html"].replace("\\", "/")
+    preview_url = prefix + chart["output_png"].replace("\\", "/")
     csv_url = prefix + chart["output_csv"].replace("\\", "/")
     return f"""
 <article class="card">
   <h3>{html.escape(chart["title"])}</h3>
   <p>{html.escape(chart["description"])}</p>
+  <a class="chart-preview" href="{html.escape(chart_url)}" aria-label="打开{html.escape(chart["title"])}">
+    <img src="{html.escape(preview_url)}" alt="{html.escape(chart["title"])}小图" loading="lazy">
+  </a>
+  <div class="actions">
+    <a class="button" href="{html.escape(chart_url)}">打开图表</a>
+    <a class="button" href="{html.escape(csv_url)}" download>下载 CSV</a>
+  </div>
   <div class="meta">
     栏目：{html.escape(category["title"])}<br>
     融资余额：{html.escape(str(info.get("latest_margin_date", "-")))}，{info.get("latest_margin", "-")} 万亿元<br>
     中证500：{html.escape(str(info.get("latest_csi_date", "-")))}，{info.get("latest_csi", "-")}<br>
     创业板指：{html.escape(str(info.get("latest_chinext_date", "-")))}，{info.get("latest_chinext", "-")}
   </div>
-  <a class="button" href="{html.escape(chart_url)}">打开图表</a>
-  <a class="button" href="{html.escape(csv_url)}">下载 CSV</a>
 </article>
 """
 
