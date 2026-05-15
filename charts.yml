@@ -22,7 +22,7 @@ charts:
   - id: usdt-speed-indicator
     category: crypto-liquidity
     title: BTC/ETH 与 USDT/USDC 发行量
-    description: 主图显示 BTC、ETH、USDT发行量、USDC发行量；副图显示 USDT 发行量 5日、30日、60日均线。BTC/ETH 可回到 2015，USDT/USDC 使用 DefiLlama 可用日频数据。
+    description: 主图显示 BTC、ETH、USDT发行量、USDC发行量，并用半透明线叠加 USDT 10日、30日、50日、120日、200日净增相对历史平均值的偏离。
     builder: usdt_speed_indicator
     module: plot_crypto_liquidity
     output_html: charts/crypto-liquidity/usdt-speed-indicator.html
