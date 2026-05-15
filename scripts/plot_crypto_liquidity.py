@@ -14,6 +14,7 @@ import pandas as pd
 
 START_DATE = date(2015, 8, 7)
 END_DATE = date.today()
+DISPLAY_START = pd.Timestamp("2018-09-01")
 PRICE_SOURCE = "https://min-api.cryptocompare.com/data/v2/histoday"
 STABLECOIN_SOURCE = "https://stablecoins.llama.fi/stablecoincharts/all"
 
@@ -190,8 +191,9 @@ const P=__PAYLOAD__,rows=P.rows.map(r=>({...r,t:new Date(r.date).getTime()})),ca
 
 def write_interactive_html(data: pd.DataFrame, output_html: Path) -> None:
     meta = chart_meta(data)
+    display_data = data.loc[data["date"] >= DISPLAY_START]
     records = []
-    for row in data.itertuples(index=False):
+    for row in display_data.itertuples(index=False):
         records.append(
             {
                 "date": row.date.strftime("%Y-%m-%d"),
@@ -260,8 +262,9 @@ resize();
 
 def write_interactive_html(data: pd.DataFrame, output_html: Path) -> None:
     meta = chart_meta(data)
+    display_data = data.loc[data["date"] >= DISPLAY_START]
     records = []
-    for row in data.itertuples(index=False):
+    for row in display_data.itertuples(index=False):
         records.append(
             {
                 "date": row.date.strftime("%Y-%m-%d"),
@@ -270,8 +273,10 @@ def write_interactive_html(data: pd.DataFrame, output_html: Path) -> None:
                 "usdt": series_value(row.usdt_b, 4),
                 "usdc": series_value(row.usdc_b, 4),
                 "dev10": series_value(row.usdt_delta_dev_10d_b, 4),
+                "dev30": series_value(row.usdt_delta_dev_30d_b, 4),
                 "dev50": series_value(row.usdt_delta_dev_50d_b, 4),
                 "dev120": series_value(row.usdt_delta_dev_120d_b, 4),
+                "dev200": series_value(row.usdt_delta_dev_200d_b, 4),
             }
         )
 
@@ -310,7 +315,7 @@ const series=[
   {key:"dev120",label:"120D净增-均值",color:colors.dev120,scale:"dev",width:.85},
   {key:"dev200",label:"200D净增-均值",color:colors.dev200,scale:"dev",width:.85}
 ];
-let box={},zoom=null,drag=null,legendBoxes=[],hidden={dev10:true,dev30:true,dev120:true,dev200:true};
+let box={},zoom=null,drag=null,legendBoxes=[],hidden={dev10:true,dev30:true,dev50:true,dev120:true};
 const DAY=86400000,displayEnd=rows[rows.length-1].t+DAY*30;
 const devScaleKeys=["dev10","dev30","dev50","dev120","dev200"];
 const ratioBase={btc:rows.find(r=>r.btc!=null)?.btc,eth:rows.find(r=>r.eth!=null)?.eth};
@@ -353,7 +358,7 @@ function drawLegend(x,y){
 function drawAxes(){
   [10,100,1000,10000,100000].forEach(v=>{if(Math.log(v)<box.ratioMin||Math.log(v)>box.ratioMax)return;const y=yRatio(v);gridLine(y);ctx.fillStyle=colors.btc;ctx.textAlign="right";ctx.fillText(pct(v,0),box.x0-9,y+4)});
   [0,50,100,150,200,250].forEach(v=>{if(v>box.supplyMax)return;const y=ySupply(v);ctx.fillStyle=colors.usdt;ctx.textAlign="left";ctx.fillText("$"+v+"B",box.x1+9,y+4)});
-  [-2,-1,0,1,2].map(n=>n*box.devTick).forEach(v=>{if(v<box.devMin||v>box.devMax)return;const y=yDev(v);if(v===0){ctx.setLineDash([5,5]);ctx.strokeStyle="rgba(82,96,113,.45)";ctx.beginPath();ctx.moveTo(box.x0,y);ctx.lineTo(box.x1,y);ctx.stroke();ctx.setLineDash([])}ctx.fillStyle="#6f4aa8";ctx.textAlign="left";ctx.fillText((v>0?"+":"")+v.toFixed(1)+"B",box.x1+74,y+4)});
+  [-2,-1,0,1,2].map(n=>n*box.devTick).forEach(v=>{if(v<box.devMin||v>box.devMax)return;const y=yDev(v);if(v===0){ctx.setLineDash([5,5]);ctx.strokeStyle="rgba(82,96,113,.45)";ctx.beginPath();ctx.moveTo(box.x0,y);ctx.lineTo(box.x1,y);ctx.stroke();ctx.setLineDash([])}ctx.fillStyle="#6f4aa8";ctx.textAlign="left";ctx.fillText((v>0?"+":"")+v.toFixed(1)+"B",box.x1+62,y+4)});
 }
 function drawPath(item){
   if(hidden[item.key])return;
@@ -369,7 +374,7 @@ function drawPath(item){
 }
 function draw(active){
   const w=canvas.clientWidth,h=canvas.clientHeight,outer=Math.round(Math.min(w,h)*.035);
-  const axisLeft=66,axisRight=170,titleY=outer+18,legendY=outer+56,xLabelGap=37;
+  const axisLeft=66,axisRight=132,titleY=outer+18,legendY=outer+56,xLabelGap=37;
   const x0=outer+axisLeft,x1=w-outer-axisRight,y0=outer+82,y1=h-outer-xLabelGap;
   const [t0,t1]=currentRange(),sample=visibleRows();
   const [ratioMin0,ratioMax0]=extent(activeKeys("ratio",["btc","eth"]),sample);
@@ -386,8 +391,8 @@ function draw(active){
   ctx.strokeStyle="#cfd8e2";ctx.strokeRect(x0,y0,x1-x0,y1-y0);
   ctx.save();ctx.beginPath();ctx.rect(x0,y0,x1-x0,y1-y0);ctx.clip();series.forEach(drawPath);ctx.restore();
   ctx.fillStyle=colors.btc;ctx.textAlign="center";ctx.save();ctx.translate(24,(y0+y1)/2);ctx.rotate(-Math.PI/2);ctx.fillText("BTC / ETH（起点=100%）",0,0);ctx.restore();
-  ctx.save();ctx.translate(x1+66,(y0+y1)/2);ctx.rotate(Math.PI/2);ctx.fillStyle=colors.usdt;ctx.fillText("USDT / USDC 发行量",0,0);ctx.restore();
-  ctx.save();ctx.translate(x1+118,(y0+y1)/2);ctx.rotate(Math.PI/2);ctx.fillStyle="#6f4aa8";ctx.fillText("USDT净增偏离均值",0,0);ctx.restore();
+  ctx.save();ctx.translate(x1+52,(y0+y1)/2);ctx.rotate(Math.PI/2);ctx.fillStyle=colors.usdt;ctx.fillText("USDT / USDC 发行量",0,0);ctx.restore();
+  ctx.save();ctx.translate(x1+98,(y0+y1)/2);ctx.rotate(Math.PI/2);ctx.fillStyle="#6f4aa8";ctx.fillText("USDT净增偏离均值",0,0);ctx.restore();
   if(active!=null){const r=rows[active],x=xScale(r.t);ctx.setLineDash([5,5]);ctx.strokeStyle="rgba(82,96,113,.62)";ctx.beginPath();ctx.moveTo(x,y0);ctx.lineTo(x,y1);ctx.stroke();ctx.setLineDash([]);series.forEach(item=>{const v=plotValue(item,r);if(hidden[item.key]||v==null)return;ctx.fillStyle="#fff";ctx.strokeStyle=item.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,yFor(item,v),3.3,0,Math.PI*2);ctx.fill();ctx.stroke()})}
 }
 function clampX(x){return Math.max(box.x0,Math.min(box.x1,x))}
