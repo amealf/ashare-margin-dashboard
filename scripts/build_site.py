@@ -76,7 +76,8 @@ def build_usdt_speed_indicator(chart: dict) -> dict:
     csv_path.parent.mkdir(parents=True, exist_ok=True)
     html_path.parent.mkdir(parents=True, exist_ok=True)
 
-    data = module.build_indicator_frame(cache_path=csv_path)
+    source_cache_path = ROOT / chart["output_csv"]
+    data = module.build_indicator_frame(cache_path=source_cache_path if source_cache_path.exists() else csv_path)
     data.to_csv(csv_path, index=False, encoding="utf-8-sig")
     module.write_interactive_html(data, html_path)
     return module.chart_meta(data)

@@ -54,12 +54,18 @@ def fetch_price(symbol: str, column: str, start: date, end: date) -> pd.Series:
         data = payload.get("Data", {}).get("Data", []) if isinstance(payload, dict) else []
         if not data:
             break
-        rows.extend(data)
-        earliest = min(int(item["time"]) for item in data)
+        valid_data = [item for item in data if isinstance(item, dict) and "time" in item and "close" in item]
+        if not valid_data:
+            raise RuntimeError(f"{symbol} price payload has unexpected shape")
+        rows.extend(valid_data)
+        earliest = min(int(item["time"]) for item in valid_data)
         if earliest <= start_ts:
             break
         to_ts = earliest - 86400
         time.sleep(0.2)
+
+    if not rows:
+        raise RuntimeError(f"{symbol} price data is empty")
 
     frame = pd.DataFrame(rows)
     frame["date"] = pd.to_datetime(frame["time"], unit="s", utc=True).dt.tz_localize(None).dt.normalize()
