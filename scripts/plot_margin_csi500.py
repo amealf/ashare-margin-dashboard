@@ -501,6 +501,18 @@ draw();
 </script>
 """
     html = html.replace("</script></body></html>", "</script>" + annotation_controls + "</body></html>")
+    home_controls = """
+<style>
+.home-link{position:absolute;left:14px;top:14px;z-index:2;width:32px;height:32px;border:1px solid rgba(120,129,145,.34);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#526071;background:rgba(255,255,255,.72);box-shadow:0 6px 18px rgba(15,23,42,.08);backdrop-filter:blur(2px)}
+.is-embed .home-link{display:none}
+.home-link:hover{color:#17202a;background:rgba(255,255,255,.94)}
+.home-link svg{width:18px;height:18px;stroke:currentColor}
+</style>
+<script>if(new URLSearchParams(location.search).get("embed")==="1")document.documentElement.classList.add("is-embed");</script>
+"""
+    home_link = """<a class="home-link" href="../../index.html" aria-label="返回主页" title="返回主页"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg></a>"""
+    html = html.replace("</head>", home_controls + "</head>")
+    html = html.replace('<div class="page">', '<div class="page">' + home_link, 1)
     html = html.replace("__PAYLOAD__", payload)
     html = "".join(line.strip() for line in html.splitlines())
     output_html.write_text(html, encoding="utf-8")

@@ -201,7 +201,7 @@ def chart_card(chart: dict, category: dict, generated: dict, prefix: str = "") -
     chart_id = chart["id"]
     info = generated.get(chart_id, {})
     chart_url = prefix + chart["output_html"].replace("\\", "/")
-    preview_url = chart_url + ("&" if "?" in chart_url else "?") + "notes=0"
+    preview_url = chart_url + ("&" if "?" in chart_url else "?") + "notes=0&embed=1"
     csv_url = prefix + chart["output_csv"].replace("\\", "/")
     chart_title = html.escape(chart["title"])
     metric_rows = []
