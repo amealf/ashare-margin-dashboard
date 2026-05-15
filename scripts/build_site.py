@@ -200,6 +200,7 @@ def chart_card(chart: dict, category: dict, generated: dict, prefix: str = "") -
     chart_id = chart["id"]
     info = generated.get(chart_id, {})
     chart_url = prefix + chart["output_html"].replace("\\", "/")
+    preview_url = chart_url + ("&" if "?" in chart_url else "?") + "notes=0"
     csv_url = prefix + chart["output_csv"].replace("\\", "/")
     chart_title = html.escape(chart["title"])
     metric_rows = []
@@ -221,7 +222,7 @@ def chart_card(chart: dict, category: dict, generated: dict, prefix: str = "") -
   <h3>{chart_title}</h3>
   <p>{html.escape(chart["description"])}</p>
   <div class="chart-preview">
-    <iframe src="{html.escape(chart_url)}" title="{chart_title}小图" loading="lazy"></iframe>
+    <iframe src="{html.escape(preview_url)}" title="{chart_title}小图" loading="lazy"></iframe>
     <a class="preview-hit" href="{html.escape(chart_url)}" aria-label="打开{chart_title}"></a>
   </div>
   <div class="actions">
