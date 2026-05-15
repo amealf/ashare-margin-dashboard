@@ -312,6 +312,7 @@ const series=[
 ];
 let box={},zoom=null,drag=null,legendBoxes=[],hidden={dev10:true,dev30:true,dev120:true,dev200:true};
 const DAY=86400000,displayEnd=rows[rows.length-1].t+DAY*30;
+const devScaleKeys=["dev10","dev30","dev50","dev120","dev200"];
 const ratioBase={btc:rows.find(r=>r.btc!=null)?.btc,eth:rows.find(r=>r.eth!=null)?.eth};
 function usd(v,d=0){return v==null?"-":"$"+Number(v).toLocaleString("en-US",{maximumFractionDigits:d,minimumFractionDigits:d})}
 function b(v){return v==null?"-":Number(v).toFixed(2)+"B"}
@@ -366,16 +367,18 @@ function drawPath(item){
   ctx.strokeStyle=item.color;ctx.lineWidth=item.width;ctx.setLineDash(item.dash||[]);ctx.stroke();ctx.setLineDash([]);
 }
 function draw(active){
-  const w=canvas.clientWidth,h=canvas.clientHeight,m=Math.round(Math.min(w,h)*.09),p={l:m,r:m,t:m,b:m},x0=p.l,x1=w-p.r,y0=p.t,y1=h-p.b;
+  const w=canvas.clientWidth,h=canvas.clientHeight,outer=Math.round(Math.min(w,h)*.035);
+  const axisLeft=66,axisRight=100,titleY=outer+18,legendY=outer+56,xLabelGap=37;
+  const x0=outer+axisLeft,x1=w-outer-axisRight,y0=outer+82,y1=h-outer-xLabelGap;
   const [t0,t1]=currentRange(),sample=visibleRows();
   const [ratioMin0,ratioMax0]=extent(activeKeys("ratio",["btc","eth"]),sample);
   const [supplyMin0,supplyMax0]=extent(activeKeys("supply",["usdt","usdc"]),sample);
-  const [devMin0,devMax0]=extent(activeKeys("dev",["dev10","dev30","dev50","dev120","dev200"]),sample);
+  const [devMin0,devMax0]=extent(devScaleKeys,rows);
   const devAbs=Math.max(Math.abs(devMin0),Math.abs(devMax0),.5),devTick=Math.ceil(devAbs/2*10)/10;
   box={x0,x1,y0,y1,t0,t1,ratioMin:Math.log(Math.max(ratioMin0*.75,.01)),ratioMax:Math.log(ratioMax0*1.18),supplyMin:0,supplyMax:Math.max(supplyMax0*1.1,1),devMin:-devTick*2,devMax:devTick*2,devTick};
   ctx.clearRect(0,0,w,h);ctx.fillStyle="#fff";ctx.fillRect(0,0,w,h);
-  ctx.fillStyle=colors.text;ctx.font="700 21px Microsoft YaHei,Arial";ctx.textAlign="center";ctx.fillText("BTC/ETH 与 USDT/USDC 发行量",w/2,34);
-  drawLegend(x0,64);
+  ctx.fillStyle=colors.text;ctx.font="700 21px Microsoft YaHei,Arial";ctx.textAlign="center";ctx.fillText("BTC/ETH 与 USDT/USDC 发行量",w/2,titleY);
+  drawLegend(x0,legendY);
   const startY=new Date(box.t0).getUTCFullYear(),endY=new Date(box.t1).getUTCFullYear();
   for(let year=startY;year<=endY;year++){const x=xScale(new Date(`${year}-01-01T00:00:00Z`).getTime());if(x<x0||x>x1)continue;ctx.strokeStyle="#edf2f7";ctx.lineWidth=.65;ctx.beginPath();ctx.moveTo(x,y0);ctx.lineTo(x,y1);ctx.stroke();ctx.fillStyle=colors.muted;ctx.textAlign="center";ctx.fillText(year,x,y1+25)}
   drawAxes();
