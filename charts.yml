@@ -1,6 +1,6 @@
 site:
   title: Yilimi Market Analysis
-  description: 每天更新的市场监控面板，跟踪 A 股融资余额、BTC/ETH 价格和稳定币发行量。
+  description: 跟踪 A 股融资余额、BTC/ETH 价格和稳定币发行量。
 
 categories:
   - id: a-share-margin

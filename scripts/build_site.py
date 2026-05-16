@@ -120,7 +120,7 @@ def render_page(title: str, body: str) -> str:
       padding: 34px 0 30px;
     }}
     .home-top h1 {{
-      font-size: 46px;
+      font-size: 40px;
       line-height: 1.08;
       font-weight: 800;
       color: #0f172a;
@@ -241,7 +241,6 @@ def chart_card(chart: dict, category: dict, generated: dict, prefix: str = "") -
     metrics_html = "".join(metric_rows)
     return f"""
 <article class="card">
-  <h3>{chart_title}</h3>
   {description_html}
   <div class="chart-preview">
     <iframe src="{html.escape(preview_url)}" title="{chart_title}小图" loading="lazy"></iframe>
