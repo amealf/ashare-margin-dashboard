@@ -279,6 +279,9 @@ resize();
 
 def write_interactive_html(data: pd.DataFrame, output_html: Path) -> None:
     meta = chart_meta(data)
+    data = data.copy()
+    data["btc_daily_pct"] = data["BTC"].pct_change() * 100
+    data["eth_daily_pct"] = data["ETH"].pct_change() * 100
     display_data = data.loc[data["date"] >= DISPLAY_START]
     records = []
     for row in display_data.itertuples(index=False):
@@ -287,6 +290,8 @@ def write_interactive_html(data: pd.DataFrame, output_html: Path) -> None:
                 "date": row.date.strftime("%Y-%m-%d"),
                 "btc": series_value(row.BTC, 2),
                 "eth": series_value(row.ETH, 2),
+                "btcDaily": series_value(row.btc_daily_pct, 2),
+                "ethDaily": series_value(row.eth_daily_pct, 2),
                 "usdt": series_value(row.usdt_b, 4),
                 "usdc": series_value(row.usdc_b, 4),
                 "stable": series_value(row.stable_b, 4),
@@ -324,7 +329,7 @@ const rows=P.rows.map(r=>({...r,t:new Date(r.date).getTime()}));
 const canvas=document.getElementById("chart");
 const ctx=canvas.getContext("2d");
 const tip=document.getElementById("tip");
-const colors={btc:"#1f77b4",eth:"#A5A5A5",usdt:"#ED7D31",usdc:"#FFC000",stable:"#70AD47",ma5:"rgba(237,125,49,.45)",ma30:"rgba(237,125,49,.70)",dev300:"rgba(214,39,40,.30)",grid:"#dfe6ed",text:"#17202a",muted:"#526071"};
+const colors={btc:"#1f77b4",eth:"#A5A5A5",usdt:"#ED7D31",usdc:"#FFC000",stable:"#70AD47",ma5:"#2ca02c",ma30:"#d62728",dev300:"#111827",grid:"#dfe6ed",text:"#17202a",muted:"#526071"};
 const series=[
   {key:"btc",label:"BTC",color:colors.btc,scale:"ratio",width:1.15},
   {key:"eth",label:"ETH",color:colors.eth,scale:"ratio",width:1.05},
@@ -341,11 +346,12 @@ const ratioBase={btc:rows.find(r=>r.btc!=null)?.btc,eth:rows.find(r=>r.eth!=null
 function usd(v,d=0){return v==null?"-":"$"+Number(v).toLocaleString("en-US",{maximumFractionDigits:d,minimumFractionDigits:d})}
 function b(v){return v==null?"-":Number(v).toFixed(2)+"B"}
 function signedB(v){if(v==null)return "-";const n=Number(v);return (n>0?"+":"")+n.toFixed(2)+"B"}
+function signedPct(v){if(v==null)return "-";const n=Number(v);return (n>0?"+":"")+n.toFixed(2)+"%"}
 function pct(v,d=1){return v==null?"-":Number(v).toLocaleString("en-US",{maximumFractionDigits:d,minimumFractionDigits:d})+"%"}
 function multiple(v){return v==null?"-":Number(v/100).toLocaleString("en-US",{maximumFractionDigits:0,minimumFractionDigits:0})}
 function ratioValue(item,r){const base=ratioBase[item.key];return base&&r[item.key]!=null?r[item.key]/base*100:null}
 function plotValue(item,r){return item.scale==="ratio"?ratioValue(item,r):r[item.key]}
-function valueText(item,r){if(item.scale==="ratio"){const v=ratioValue(item,r);return v==null?"-":pct(v)+" ("+usd(r[item.key])+")"}return item.scale==="dev"?signedB(r[item.key]):b(r[item.key])}
+function valueText(item,r){if(item.scale==="ratio"){const v=ratioValue(item,r),daily=item.key==="btc"?r.btcDaily:r.ethDaily;return v==null?"-":pct(v)+" ("+usd(r[item.key])+")，当日涨跌："+signedPct(daily)}return item.scale==="dev"?signedB(r[item.key]):b(r[item.key])}
 function extent(keys,list=rows){const a=keys.flatMap(k=>{const item=series.find(s=>s.key===k);return list.map(r=>plotValue(item,r)).filter(v=>v!=null&&Number.isFinite(v))});return a.length?[Math.min(...a),Math.max(...a)]:[0,1]}
 function activeKeys(scale,allKeys){const keys=series.filter(s=>s.scale===scale&&!hidden[s.key]).map(s=>s.key);return keys.length?keys:allKeys}
 function currentRange(){return zoom||[rows[0].t,displayEnd]}
@@ -406,7 +412,7 @@ function draw(active){
   drawAxes();
   ctx.strokeStyle="#cfd8e2";ctx.strokeRect(x0,y0,x1-x0,y1-y0);
   ctx.save();ctx.beginPath();ctx.rect(x0,y0,x1-x0,y1-y0);ctx.clip();series.forEach(drawPath);ctx.restore();
-  ctx.fillStyle=colors.btc;ctx.textAlign="center";ctx.save();ctx.translate(20,(y0+y1)/2);ctx.rotate(-Math.PI/2);ctx.fillText("BTC / ETH（起点=1）",0,0);ctx.restore();
+  ctx.fillStyle=colors.btc;ctx.textAlign="center";ctx.save();ctx.translate(x0-52,(y0+y1)/2);ctx.rotate(-Math.PI/2);ctx.fillText("BTC / ETH（起点=1）",0,0);ctx.restore();
   ctx.save();ctx.translate(x1+52,(y0+y1)/2);ctx.rotate(Math.PI/2);ctx.fillStyle=colors.usdt;ctx.fillText("USDT / USDC / 合计发行量",0,0);ctx.restore();
   if(active!=null){const r=rows[active],x=xScale(r.t);ctx.setLineDash([5,5]);ctx.strokeStyle="rgba(82,96,113,.62)";ctx.beginPath();ctx.moveTo(x,y0);ctx.lineTo(x,y1);ctx.stroke();ctx.setLineDash([]);series.forEach(item=>{const v=plotValue(item,r);if(hidden[item.key]||v==null)return;ctx.fillStyle="#fff";ctx.strokeStyle=item.color;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,yFor(item,v),3.3,0,Math.PI*2);ctx.fill();ctx.stroke()})}
 }
