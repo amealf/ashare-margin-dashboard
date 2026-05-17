@@ -96,6 +96,17 @@ def fetch_stablecoin_supply(stablecoin_id: int, column: str, start: date, end: d
     return frame.drop_duplicates("date").sort_values("date").set_index("date")[column]
 
 
+def add_usdt_indicators(data: pd.DataFrame) -> None:
+    for window in [5, 30]:
+        data[f"usdt_ma_{window}d_b"] = data["usdt_b"].rolling(window, min_periods=1).mean()
+
+    for window in [300]:
+        delta_column = f"usdt_delta_{window}d_b"
+        data[delta_column] = data["usdt_b"] - data["usdt_b"].shift(window)
+        historical_mean = data[delta_column].expanding(min_periods=1).mean().shift(1)
+        data[f"usdt_delta_dev_{window}d_b"] = data[delta_column] - historical_mean
+
+
 def build_indicator_frame(cache_path: Path | None = None) -> pd.DataFrame:
     try:
         btc = fetch_price("BTC", "BTC", START_DATE, END_DATE)
@@ -107,14 +118,7 @@ def build_indicator_frame(cache_path: Path | None = None) -> pd.DataFrame:
             cached = pd.read_csv(cache_path, parse_dates=["date"])
             if "stable_b" not in cached.columns:
                 cached["stable_b"] = cached[["usdt_b", "usdc_b"]].sum(axis=1, min_count=1)
-            for window in [5, 30]:
-                column = f"usdt_ma_{window}d_b"
-                if column not in cached.columns:
-                    cached[column] = cached["usdt_b"].rolling(window, min_periods=1).mean()
-            if "usdt_delta_dev_300d_b" not in cached.columns:
-                daily_delta_mean_b = cached["usdt_b"].diff().mean()
-                cached["usdt_delta_300d_b"] = cached["usdt_b"] - cached["usdt_b"].shift(300)
-                cached["usdt_delta_dev_300d_b"] = cached["usdt_delta_300d_b"] - daily_delta_mean_b * 300
+            add_usdt_indicators(cached)
             return cached
         raise
 
@@ -127,13 +131,7 @@ def build_indicator_frame(cache_path: Path | None = None) -> pd.DataFrame:
     data["usdt_b"] = data["USDT"] / 1e9
     data["usdc_b"] = data["USDC"] / 1e9
     data["stable_b"] = data[["usdt_b", "usdc_b"]].sum(axis=1, min_count=1)
-    for window in [5, 30]:
-        data[f"usdt_ma_{window}d_b"] = data["usdt_b"].rolling(window, min_periods=1).mean()
-    daily_delta_mean_b = data["usdt_b"].diff().mean()
-    for window in [300]:
-        data[f"usdt_delta_{window}d_b"] = data["usdt_b"] - data["usdt_b"].shift(window)
-        baseline = daily_delta_mean_b * window
-        data[f"usdt_delta_dev_{window}d_b"] = data[f"usdt_delta_{window}d_b"] - baseline
+    add_usdt_indicators(data)
 
     data.index.name = "date"
     return data.reset_index()
@@ -168,7 +166,7 @@ def chart_meta(data: pd.DataFrame) -> dict:
         "eth": round(float(latest_eth["ETH"]), 2),
         "usdt": round(float(latest_usdt["USDT"]) / 1e9, 2),
         "usdc": round(float(latest_usdc["USDC"]) / 1e9, 2),
-        "dataNote": f"BTC/ETH 行情从 {btc_start}/{eth_start} 开始；USDT/USDC 发行量从 {usdt_start}/{usdc_start} 开始。半透明线表示 USDT 300日净增量减去全样本日均净增量乘以300。",
+        "dataNote": f"BTC/ETH 行情从 {btc_start}/{eth_start} 开始；USDT/USDC 发行量从 {usdt_start}/{usdc_start} 开始。300D前均差表示当前300日净增量减去此前所有300日净增量的历史均值。",
         "metrics": [
             {"label": "BTC", "value": f"${float(latest_btc['BTC']):,.0f}", "date": str(latest_btc["date"].date())},
             {"label": "ETH", "value": f"${float(latest_eth['ETH']):,.0f}", "date": str(latest_eth["date"].date())},
@@ -350,7 +348,7 @@ const series=[
   {key:"stable",label:"USDT+USDC",color:colors.stable,scale:"supply",width:1.1},
   {key:"ma5",label:"USDT 5D均线",color:colors.ma5,scale:"supply",width:.95},
   {key:"ma30",label:"USDT 30D均线",color:colors.ma30,scale:"supply",width:1.05},
-  {key:"dev300",label:"300D全均",color:colors.dev300,scale:"supply",width:.85}
+  {key:"dev300",label:"300D前均差",color:colors.dev300,scale:"supply",width:.85}
 ];
 let box={},zoom=null,drag=null,legendBoxes=[],hidden={usdc:true,stable:true,ma5:true,ma30:true,dev300:true};
 const DAY=86400000,displayEnd=rows[rows.length-1].t+DAY*30;
