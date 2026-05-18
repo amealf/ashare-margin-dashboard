@@ -23,6 +23,16 @@ PYTHON_DEFAULT_COLORS = [
 ]
 
 
+MAJOR_EVENTS = [
+    {"date": "2008-09-15", "label": "Lehman"},
+    {"date": "2018-07-06", "label": "Trade war"},
+    {"date": "2020-03-11", "label": "COVID"},
+    {"date": "2022-02-24", "label": "Russia-Ukraine"},
+    {"date": "2022-09-23", "label": "UK mini-budget"},
+    {"date": "2022-12-20", "label": "BOJ YCC"},
+]
+
+
 def write_plot(data: pd.DataFrame, markets: list[dict], output_html: str | Path) -> None:
     fig = go.Figure()
     latest_items = []
@@ -42,7 +52,7 @@ def write_plot(data: pd.DataFrame, markets: list[dict], output_html: str | Path)
                 y=frame["close_yield_pct"],
                 mode="lines",
                 name=f"{market['label']} / {market['source_name']}",
-                line={"width": 1.25, "color": PYTHON_DEFAULT_COLORS[index % len(PYTHON_DEFAULT_COLORS)]},
+                line={"width": 1.0, "color": PYTHON_DEFAULT_COLORS[index % len(PYTHON_DEFAULT_COLORS)]},
                 connectgaps=False,
                 customdata=customdata,
                 hovertemplate=(
@@ -60,6 +70,7 @@ def write_plot(data: pd.DataFrame, markets: list[dict], output_html: str | Path)
 
     for frame, market, yshift in latest_annotation_items(latest_items, "close_yield_pct", 0.25):
         add_latest_annotation(fig, frame, market, yshift)
+    add_event_markers(fig, data)
 
     fig.update_layout(
         title={"text": "Global 30Y Sovereign Yield Daily History", "x": 0.5, "xanchor": "center"},
@@ -84,6 +95,41 @@ def write_plot(data: pd.DataFrame, markets: list[dict], output_html: str | Path)
         font={"family": "Microsoft YaHei, Noto Sans CJK SC, Arial, sans-serif", "color": "#172033"},
     )
     write_html(fig, output_html)
+
+
+def add_event_markers(fig: go.Figure, data: pd.DataFrame) -> None:
+    if data.empty:
+        return
+    min_date = pd.to_datetime(data["date"]).min()
+    max_date = pd.to_datetime(data["date"]).max()
+    for index, event in enumerate(MAJOR_EVENTS):
+        event_date = pd.Timestamp(event["date"])
+        if event_date < min_date or event_date > max_date:
+            continue
+        fig.add_shape(
+            type="line",
+            x0=event_date,
+            x1=event_date,
+            y0=0,
+            y1=1,
+            xref="x",
+            yref="paper",
+            line={"width": 0.8, "dash": "dot", "color": "#64748b"},
+        )
+        fig.add_annotation(
+            x=event_date,
+            y=0.98,
+            xref="x",
+            yref="paper",
+            text=html.escape(event["label"]),
+            showarrow=False,
+            textangle=-90,
+            xanchor="left",
+            yanchor="top",
+            yshift=-(index % 2) * 16,
+            font={"size": 10, "color": "#475569"},
+            bgcolor="rgba(255,255,255,.62)",
+        )
 
 
 def latest_annotation_items(items: list[tuple[pd.DataFrame, dict]], y_column: str, threshold: float) -> list[tuple[pd.DataFrame, dict, float]]:

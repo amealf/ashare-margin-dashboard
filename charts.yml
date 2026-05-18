@@ -10,7 +10,7 @@ categories:
     title: 加密市场流动性
     description: 跟踪 BTC 价格与 USDT 净增速度多空指标。
   - id: global-rates
-    title: 全球利率
+    title: 宏观观察
     description: 跟踪美国、日本、韩国、英国30Y国债收益率的日内与日线历史变化。
 
 charts:

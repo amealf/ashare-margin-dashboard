@@ -178,6 +178,17 @@ def render_page(title: str, body: str) -> str:
     }}
     .card h3 {{ margin: 0 0 6px; font-size: 17px; line-height: 1.35; }}
     .card p {{ margin: 0 0 10px; color: #4b586a; line-height: 1.6; font-size: 13px; }}
+    .category-list {{ display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }}
+    .chip {{
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #d7e0e8;
+      border-radius: 999px;
+      padding: 5px 8px;
+      color: #475569;
+      background: #f8fafc;
+      font-size: 12px;
+    }}
     .chart-preview {{
       position: relative;
       display: block;
@@ -290,6 +301,23 @@ def chart_card(chart: dict, category: dict, generated: dict, prefix: str = "") -
 """
 
 
+def category_card(category: dict, charts: list[dict], prefix: str = "") -> str:
+    category_url = prefix + f"{category['id']}/index.html"
+    title = html.escape(category["title"])
+    description = html.escape(str(category.get("description") or ""))
+    chart_chips = "".join(f'<span class="chip">{html.escape(chart["title"])}</span>' for chart in charts)
+    return f"""
+<article class="card">
+  <h3>{title}</h3>
+  <p>{description}</p>
+  <div class="category-list">{chart_chips}</div>
+  <div class="actions">
+    <a class="button" href="{html.escape(category_url)}">进入{title}</a>
+  </div>
+</article>
+"""
+
+
 def write_index(config: dict, generated: dict, selected_ids: set[str]) -> None:
     categories = {item["id"]: item for item in config["categories"]}
     charts = [chart for chart in config["charts"] if chart["id"] in selected_ids]
@@ -302,7 +330,6 @@ def write_index(config: dict, generated: dict, selected_ids: set[str]) -> None:
         category_cards = "".join(
             chart_card(chart, category, generated, prefix="../") for chart in category_charts
         )
-        index_cards = "".join(chart_card(chart, category, generated) for chart in category_charts)
         category_dir = SITE_DIR / category["id"]
         category_dir.mkdir(parents=True, exist_ok=True)
         category_body = f"""
@@ -320,7 +347,7 @@ def write_index(config: dict, generated: dict, selected_ids: set[str]) -> None:
             render_page(category["title"], category_body),
             encoding="utf-8",
         )
-        home_cards.append(index_cards)
+        home_cards.append(category_card(category, category_charts))
 
     body = f"""
 <div class="top home-top">
