@@ -40,12 +40,12 @@ timestamp,yield
 
 If a CSV timestamp has no timezone, it is interpreted in that market's configured local timezone. If the timestamp already has an offset, the offset is used and the value is converted to UTC.
 
-`yield_unit` can be `percent`, `decimal`, or `bp`. `value_scale` is applied before unit conversion. The default US Yahoo symbol is `^TYX`, with `value_scale: 0.1`.
+`yield_unit` can be `percent`, `decimal`, or `bp`. `value_scale` is applied before unit conversion. US, Japan, and UK default to CNBC 1-minute bars. Korea remains a CSV source until a stable free minute endpoint is available.
 
 ## Free minute data limits
 
-This project does not use paid APIs. The Yahoo provider uses the free Yahoo chart endpoint for recent 1-minute data when it is available. Free intraday coverage can be delayed, short-lived, rate-limited, blocked, or absent for some symbols.
+This project does not use paid APIs. The CNBC provider uses CNBC's public chart endpoint for 1-minute bars when it is available. Free intraday coverage can be delayed, short-lived, rate-limited, blocked, or absent for some symbols.
 
-Japan, Korea, and UK 30Y minute data are configured as CSV sources because reliable official free minute APIs are not generally available for these yields. Missing CSV files or missing rows are not fabricated. With the default optional source settings, the site still builds and the affected market appears as `No data` in the summary.
+Korea 30Y minute data is configured as a CSV source because a reliable free minute API has not been found yet. Missing CSV files or missing rows are not fabricated. With the default optional source settings, the site still builds and the affected market appears as `No data` in the summary.
 
-Yahoo 1-minute history is short-lived. When old dates are outside the free lookback window, the downloader records `skipped_lookback_limit` in `data/global_30y_bond_intraday/download_report.csv`.
+When old dates are outside a free provider's lookback window, the downloader records `skipped_lookback_limit` in `data/global_30y_bond_intraday/download_report.csv`.

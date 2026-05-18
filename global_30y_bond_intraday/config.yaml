@@ -14,23 +14,19 @@ history:
 markets:
   - region: US
     label: US 30Y
-    provider: yahoo
-    source_name: Yahoo
-    symbol: ^TYX
+    provider: cnbc
+    source_name: CNBC
+    symbol: US30Y
     timezone: America/New_York
     local_open: "08:00"
     yield_unit: percent
-    value_scale: 0.1
-    history_lookback_days: 30
     optional: true
 
   - region: Japan
     label: JP 30Y
-    provider: csv
-    source_name: CSV
-    path: ../data/global_30y_bond_intraday/japan_30y.csv
-    timestamp_column: timestamp
-    yield_column: yield
+    provider: cnbc
+    source_name: CNBC
+    symbol: JP30Y
     timezone: Asia/Tokyo
     local_open: "09:00"
     yield_unit: percent
@@ -50,11 +46,9 @@ markets:
 
   - region: UK
     label: UK 30Y
-    provider: csv
-    source_name: CSV
-    path: ../data/global_30y_bond_intraday/uk_30y.csv
-    timestamp_column: timestamp
-    yield_column: yield
+    provider: cnbc
+    source_name: CNBC
+    symbol: UK30Y
     timezone: Europe/London
     local_open: "08:00"
     yield_unit: percent

@@ -14,12 +14,13 @@ if __package__ in {None, ""}:
 from .cache import list_cached_dates, read_market_cache, write_market_cache
 from .config import DEFAULT_CONFIG_PATH, load_config, parse_target_date, resolve_config_path
 from .plot import write_plot
-from .providers import csv_provider, yahoo_provider
+from .providers import cnbc_provider, csv_provider, yahoo_provider
 from .summary import build_summary, chart_meta, write_summary_csv
 from .transform import standardize_market
 
 
 PROVIDERS = {
+    "cnbc": cnbc_provider.fetch,
     "csv": csv_provider.fetch,
     "yahoo": yahoo_provider.fetch,
 }
