@@ -24,19 +24,18 @@ PYTHON_DEFAULT_COLORS = [
 
 
 MAJOR_EVENTS = [
-    {"date": "2008-09-15", "label": "Lehman", "ax": -45, "ay": 48},
-    {"date": "2018-07-06", "label": "Trade war", "ax": 42, "ay": -42},
-    {"date": "2020-03-11", "label": "COVID", "ax": -42, "ay": -44},
-    {"date": "2022-02-24", "label": "Russia-Ukraine", "ax": 54, "ay": 52},
-    {"date": "2022-09-23", "label": "UK mini-budget", "ax": -76, "ay": -52},
-    {"date": "2022-12-20", "label": "BOJ YCC", "ax": 58, "ay": -56},
-    {"date": "2025-06-22", "label": "US-Iran", "ax": -54, "ay": -46},
+    {"date": "2008-09-15", "label": "Lehman", "ax": -58, "ay": 64},
+    {"date": "2018-07-06", "label": "Trade war", "ax": 56, "ay": -58},
+    {"date": "2020-03-11", "label": "COVID", "ax": -64, "ay": -58},
+    {"date": "2022-02-24", "label": "Russia-Ukraine", "ax": 78, "ay": 48},
+    {"date": "2022-09-23", "label": "UK mini-budget", "ax": -92, "ay": -62},
+    {"date": "2022-12-20", "label": "BOJ YCC", "ax": 98, "ay": 58},
+    {"date": "2025-06-22", "label": "US-Iran", "ax": -72, "ay": -64},
 ]
 
 
 def write_plot(data: pd.DataFrame, markets: list[dict], output_html: str | Path) -> None:
     fig = go.Figure()
-    latest_items = []
     for index, market in enumerate(markets):
         frame = data[data["region"] == market["region"]].copy().sort_values("date")
         if frame.empty:
@@ -54,7 +53,7 @@ def write_plot(data: pd.DataFrame, markets: list[dict], output_html: str | Path)
                 mode="lines",
                 name=f"{market['label']} / {market['source_name']}",
                 line={"width": 1.0, "color": PYTHON_DEFAULT_COLORS[index % len(PYTHON_DEFAULT_COLORS)]},
-                opacity=1.0 if market["region"] == "US" else 0.8,
+                opacity=1.0 if market["region"] == "US" else 0.6,
                 connectgaps=False,
                 customdata=customdata,
                 hovertemplate=(
@@ -68,15 +67,12 @@ def write_plot(data: pd.DataFrame, markets: list[dict], output_html: str | Path)
                 ),
             )
         )
-        latest_items.append((frame, market))
 
-    for frame, market, yshift in latest_annotation_items(latest_items, "close_yield_pct", 0.25):
-        add_latest_annotation(fig, frame, market, yshift)
     add_event_markers(fig, data)
 
     fig.update_layout(
         title={"text": "Global 30Y Sovereign Yield Daily History", "x": 0.5, "xanchor": "center"},
-        margin={"l": 72, "r": 150, "t": 112, "b": 74},
+        margin={"l": 72, "r": 76, "t": 112, "b": 74},
         paper_bgcolor="#ffffff",
         plot_bgcolor="#ffffff",
         hovermode="x unified",
@@ -129,7 +125,7 @@ def add_event_markers(fig: go.Figure, data: pd.DataFrame) -> None:
             arrowcolor="#475569",
             ax=event["ax"],
             ay=event["ay"],
-            font={"size": 10, "color": "#334155"},
+            font={"size": 12, "color": "#334155"},
             bgcolor="rgba(255,255,255,.55)",
             bordercolor="rgba(100,116,139,.32)",
             borderwidth=1,
