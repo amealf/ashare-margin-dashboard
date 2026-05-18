@@ -98,11 +98,11 @@ def write_plot(
 
     fig.update_layout(
         title={"text": "Global 30Y Sovereign Yield Intraday Moves", "x": 0.5, "xanchor": "center"},
-        margin={"l": 64, "r": 42, "t": 76, "b": 64},
+        margin={"l": 70, "r": 150, "t": 124, "b": 78},
         paper_bgcolor="#ffffff",
         plot_bgcolor="#ffffff",
         hovermode="x unified",
-        legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "left", "x": 0},
+        legend={"orientation": "h", "yanchor": "bottom", "y": 1.06, "xanchor": "left", "x": 0},
         xaxis={
             "title": "UTC+0 time",
             "range": [day_start, day_end],
