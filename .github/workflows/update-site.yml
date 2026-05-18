@@ -44,12 +44,13 @@ jobs:
 
       - name: Persist global rates cache
         run: |
-          if [ -d data/global_30y_bond_intraday ]; then
+          if [ -d data/global_30y_bond_intraday ] || [ -d data/global_30y_bond_daily ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add data/global_30y_bond_intraday
+            [ -d data/global_30y_bond_intraday ] && git add data/global_30y_bond_intraday
+            [ -d data/global_30y_bond_daily ] && git add data/global_30y_bond_daily
             if ! git diff --cached --quiet; then
-              git commit -m "Update global 30Y intraday cache [skip ci]"
+              git commit -m "Update global 30Y rates cache [skip ci]"
               git push
             fi
           fi

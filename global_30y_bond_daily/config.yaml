@@ -1,0 +1,41 @@
+output:
+  html: ../site/charts/global-rates/global-30y-bond-daily-history.html
+  data_csv: ../site/data/global-rates/global-30y-bond-daily-history.csv
+  summary_csv: ../site/data/global-rates/global-30y-bond-daily-summary.csv
+
+history:
+  cache_dir: ../data/global_30y_bond_daily/cache
+  bar_count: 5000
+
+markets:
+  - region: US
+    label: US 30Y
+    provider: tradingview
+    source_name: TradingView
+    symbol: TVC:US30Y
+    yield_unit: percent
+    optional: true
+
+  - region: Japan
+    label: JP 30Y
+    provider: tradingview
+    source_name: TradingView
+    symbol: TVC:JP30Y
+    yield_unit: percent
+    optional: true
+
+  - region: Korea
+    label: KR 30Y
+    provider: tradingview
+    source_name: TradingView
+    symbol: TVC:KR30Y
+    yield_unit: percent
+    optional: true
+
+  - region: UK
+    label: UK 30Y
+    provider: tradingview
+    source_name: TradingView
+    symbol: TVC:GB30Y
+    yield_unit: percent
+    optional: true

@@ -37,6 +37,7 @@ def write_plot(
     fig = go.Figure()
     day_start = pd.Timestamp(datetime.combine(target_date, time.min, tzinfo=timezone.utc))
     day_end = day_start + pd.Timedelta(days=1) - pd.Timedelta(minutes=1)
+    latest_items = []
 
     for index, market in enumerate(markets):
         frame = data[data["region"] == market["region"]].copy()
@@ -68,7 +69,10 @@ def write_plot(
                 ),
             )
         )
-        add_latest_annotation(fig, frame, market)
+        latest_items.append((frame, market))
+
+    for frame, market, yshift in latest_annotation_items(latest_items, "move_bp_plot", 2.0):
+        add_latest_annotation(fig, frame, market, yshift)
 
     for open_time, labels in opening_markers(markets, target_date).items():
         x_value = open_time.isoformat()
@@ -124,7 +128,34 @@ def write_plot(
     write_html(fig, output_html, target_date, available_dates or [])
 
 
-def add_latest_annotation(fig: go.Figure, frame: pd.DataFrame, market: dict) -> None:
+def latest_annotation_items(items: list[tuple[pd.DataFrame, dict]], y_column: str, threshold: float) -> list[tuple[pd.DataFrame, dict, float]]:
+    measured = []
+    for position, (frame, market) in enumerate(items):
+        valid = frame.dropna(subset=[y_column])
+        if valid.empty:
+            continue
+        measured.append({"position": position, "frame": frame, "market": market, "y": float(valid.iloc[-1][y_column])})
+
+    shifts = {item["position"]: 0.0 for item in measured}
+    group: list[dict] = []
+    for item in sorted(measured, key=lambda value: value["y"]):
+        if not group or item["y"] - group[-1]["y"] <= threshold:
+            group.append(item)
+            continue
+        apply_group_shifts(group, shifts)
+        group = [item]
+    apply_group_shifts(group, shifts)
+    return [(item["frame"], item["market"], shifts[item["position"]]) for item in sorted(measured, key=lambda value: value["position"])]
+
+
+def apply_group_shifts(group: list[dict], shifts: dict[int, float]) -> None:
+    if len(group) <= 1:
+        return
+    for index, item in enumerate(group):
+        shifts[item["position"]] = (index - (len(group) - 1) / 2) * 28
+
+
+def add_latest_annotation(fig: go.Figure, frame: pd.DataFrame, market: dict, yshift: float) -> None:
     valid = frame.dropna(subset=["yield_pct", "move_bp_plot"])
     if valid.empty:
         return
@@ -136,6 +167,7 @@ def add_latest_annotation(fig: go.Figure, frame: pd.DataFrame, market: dict) -> 
         showarrow=False,
         xanchor="left",
         yanchor="middle",
+        yshift=yshift,
         bgcolor="rgba(255,255,255,.72)",
         bordercolor="rgba(148,163,184,.55)",
         borderwidth=1,
@@ -205,6 +237,8 @@ def write_html(fig: go.Figure, output_html: str | Path, target_date, available_d
     .date-nav select{{border:1px solid #cbd5e1;border-radius:5px;background:#fff;color:#172033;font-size:13px;padding:3px 6px}}
     .date-nav option[disabled]{{color:#94a3b8;background:#f1f5f9}}
     .is-embed .date-nav{{display:none}}
+    .chart-frame{{position:absolute;inset:0}}
+    .chart-frame>div{{width:100%!important;height:100%!important}}
     .js-plotly-plot,.plot-container,.svg-container{{width:100%!important;height:100%!important}}
   </style>
 </head>
@@ -218,7 +252,7 @@ def write_html(fig: go.Figure, output_html: str | Path, target_date, available_d
       </svg>
     </a>
     {date_nav}
-    {graph_html}
+    <div class="chart-frame">{graph_html}</div>
   </div>
 </body>
 </html>

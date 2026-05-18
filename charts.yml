@@ -11,7 +11,7 @@ categories:
     description: 跟踪 BTC 价格与 USDT 净增速度多空指标。
   - id: global-rates
     title: 全球利率
-    description: 跟踪美国、日本、韩国、英国30Y国债收益率的日内bp变化。
+    description: 跟踪美国、日本、韩国、英国30Y国债收益率的日内与日线历史变化。
 
 charts:
   - id: margin-csi500
@@ -38,3 +38,11 @@ charts:
     module: global_30y_bond_intraday.cli
     output_html: charts/global-rates/global-30y-bond-intraday.html
     output_csv: data/global-rates/global-30y-bond-intraday.csv
+  - id: global-30y-bond-daily-history
+    category: global-rates
+    title: Global 30Y Sovereign Yield Daily History
+    description: 美国、日本、韩国、英国30Y国债收益率日线历史；周末从横轴隐藏。
+    builder: global_30y_bond_daily
+    module: global_30y_bond_daily.cli
+    output_html: charts/global-rates/global-30y-bond-daily-history.html
+    output_csv: data/global-rates/global-30y-bond-daily-history.csv
