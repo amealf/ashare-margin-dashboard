@@ -39,3 +39,11 @@ markets:
     symbol: TVC:GB30Y
     yield_unit: percent
     optional: true
+
+  - region: China
+    label: CN 30Y
+    provider: tradingview
+    source_name: TradingView
+    symbol: TVC:CN30Y
+    yield_unit: percent
+    optional: true

@@ -1,6 +1,6 @@
 # global_30y_bond_daily
 
-Builds a daily history chart for 30Y sovereign yields in the US, Japan, Korea, and the UK.
+Builds a daily history chart for 30Y sovereign yields in the US, Japan, Korea, the UK, and mainland China.
 
 ## Usage
 
@@ -22,6 +22,7 @@ The default provider uses TradingView daily bars for these symbols:
 - `TVC:JP30Y`
 - `TVC:KR30Y`
 - `TVC:GB30Y`
+- `TVC:CN30Y`
 
 TradingView is a free web data source, but it does not provide a formal public API for this endpoint. The downloader therefore keeps a local CSV cache under `data\global_30y_bond_daily\cache`. If a live request fails, the build uses cached data for optional markets.
 
